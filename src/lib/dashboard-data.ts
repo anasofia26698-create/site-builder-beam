@@ -224,8 +224,9 @@ const productCatalog = [
 const makeProducts = (seed: number, grossSales: number, storeOrders: number): Product[] => {
   const weights = [1.16, 1.04, 0.96, 0.87, 0.79, 0.72, 0.64, 0.57, 0.48, 0.4];
   return productCatalog.map((item, index) => {
-    const orders = Math.max(3, Math.round((18 + seed * 2) * weights[index] + ((seed + index * 3) % 5)));
-    const revenue = grossSales * (0.018 + (weights[index] * 0.011));
+    const weight = weights[index] ?? 0.4;
+    const orders = Math.max(3, Math.round((18 + seed * 2) * weight + ((seed + index * 3) % 5)));
+    const revenue = grossSales * (0.018 + (weight * 0.011));
     return { ...item, orders, shareOrders: storeOrders ? orders / storeOrders : 0, revenue };
   });
 };
@@ -468,7 +469,7 @@ export const buildConsolidatedHistory = (stores: StoreMetrics[], allSnapshots: S
   return annualPeriods.map(({ label }, periodIndex) => {
     const monthlyPoints = storeHistories
       .map((history) => history[periodIndex])
-      .filter((point) => point.grossSales !== null);
+      .filter((point): point is NonNullable<typeof point> => Boolean(point) && point!.grossSales !== null);
     const grossSales = monthlyPoints.reduce((sum, point) => sum + Number(point.grossSales ?? 0), 0);
     const weightedNetMargin = monthlyPoints.reduce((sum, point) => sum + Number(point.grossSales ?? 0) * Number(point.netMarginPct ?? 0), 0);
     return {
@@ -493,7 +494,7 @@ export const parseBrl = (value: string | number): number => {
     ? unsigned.replace(/\./g, "").replace(",", ".")
     : dotParts.length > 2
       ? unsigned.replace(/\./g, "")
-      : dotParts.length === 2 && dotParts[0].length <= 3 && dotParts[1].length === 3
+      : dotParts.length === 2 && (dotParts[0]?.length ?? 0) <= 3 && dotParts[1]?.length === 3
         ? unsigned.replace(".", "")
         : unsigned;
   const parsed = Number(normalized.replace(/[^0-9.]/g, ""));

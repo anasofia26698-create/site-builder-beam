@@ -434,7 +434,7 @@ export default function DashboardHome() {
             <StoresView stores={filteredStores} search={search} setSearch={setSearch} onOpen={openStore} />
           )}
           {activeView === "dre" && selectedStore && (
-            <DreView store={selectedStore} stores={stores} history={history} onSelect={(id) => openStore(id, "dre")} onEdit={() => { setInputDraft(storeInputs.find((item) => item.id === selectedStore.id) ?? DEMO_STORES[0]); navigate("input"); }} />
+            <DreView store={selectedStore} stores={stores} history={history} onSelect={(id) => openStore(id, "dre")} onEdit={() => { setInputDraft(storeInputs.find((item) => item.id === selectedStore.id) ?? createEmptyStore(selectedStore.id, selectedStore.referenceMonth)); navigate("input"); }} />
           )}
           {activeView === "dre" && !selectedStore && <EmptyStoreView onNewStore={addNewStore} />}
           {activeView === "analysis" && <AnalysisView stores={stores} />}

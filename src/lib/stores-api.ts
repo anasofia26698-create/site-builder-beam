@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import type { PersistedStoreRecord } from "@/lib/dashboard-data";
+import { listStoreRecords, listStoreSnapshots, saveStoreRecord } from "@/lib/stores.functions";
 
 export type StoreSnapshotRow = PersistedStoreRecord & {
   storeId: string;

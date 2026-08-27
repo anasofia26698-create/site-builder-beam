@@ -46,42 +46,23 @@ export const storeKeys = {
 export function useStoreRecords() {
   return useQuery({
     queryKey: storeKeys.records,
-    queryFn: async (): Promise<PersistedStoreRecord[]> => {
-      const { data, error } = await supabase.from("store_records").select("*").order("id");
-      if (error) throw error;
-      return (data ?? []) as unknown as PersistedStoreRecord[];
-    },
+    queryFn: async (): Promise<PersistedStoreRecord[]> =>
+      (await listStoreRecords()) as unknown as PersistedStoreRecord[],
   });
 }
 
 export function useStoreSnapshots() {
   return useQuery({
     queryKey: storeKeys.snapshots,
-    queryFn: async (): Promise<StoreSnapshotRow[]> => {
-      const { data, error } = await supabase.from("store_snapshots").select("*");
-      if (error) throw error;
-      return (data ?? []) as unknown as StoreSnapshotRow[];
-    },
+    queryFn: async (): Promise<StoreSnapshotRow[]> =>
+      (await listStoreSnapshots()) as unknown as StoreSnapshotRow[],
   });
 }
 
 export function useSaveStore() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: SaveStorePayload) => {
-      const { id, ...rest } = payload;
-      const { error: recordError } = await supabase
-        .from("store_records")
-        .upsert({ id, ...rest }, { onConflict: "id" });
-      if (recordError) throw recordError;
-
-      const { error: snapshotError } = await supabase
-        .from("store_snapshots")
-        .upsert({ storeId: id, ...rest }, { onConflict: "storeId,referenceMonth" });
-      if (snapshotError) throw snapshotError;
-
-      return { success: true } as const;
-    },
+    mutationFn: async (payload: SaveStorePayload) => saveStoreRecord({ data: payload }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: storeKeys.records });
       queryClient.invalidateQueries({ queryKey: storeKeys.snapshots });

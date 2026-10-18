@@ -142,7 +142,20 @@ export const executeCompetencySave = (mode: CompetencySaveMode, confirmed: boole
   return true;
 };
 
-export const selectStoreAtReferenceMonth = (store: StoreInput, referenceMonth: string): StoreInput => ({ ...store, referenceMonth });
+export const selectStoreAtReferenceMonth = (
+  store: StoreInput,
+  referenceMonth: string,
+  snapshots: Array<PersistedStoreRecord & { storeId: string }> = [],
+): StoreInput => {
+  const snapshot = snapshots.find((row) => row.storeId === store.id && row.referenceMonth === referenceMonth);
+  if (snapshot) return mapPersistedStore({ ...snapshot, id: store.id });
+  return {
+    ...createEmptyStore(store.id, referenceMonth),
+    name: store.name,
+    city: store.city,
+    status: store.status,
+  };
+};
 
 export const buildImportStatus = (
   stores: StoreInput[],

@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Use the global competency as the input form's month; resolve store drafts through `selectStoreAtReferenceMonth` against saved snapshots to prevent carrying metrics between months.

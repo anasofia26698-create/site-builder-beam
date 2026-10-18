@@ -240,6 +240,10 @@ export default function DashboardHome() {
   const setPeriod = (value: string) => {
     periodTouchedRef.current = true;
     setPeriodState(value);
+    setCommissionRate(getCommissionRateForMonth(value) * 100);
+    if (value !== period) {
+      setInputDraft((current) => selectStoreAtReferenceMonth(current, value, dbSnapshots ?? []));
+    }
   };
   const [localStores, setLocalStores] = useState<StoreInput[]>([]);
   const [inputDraft, setInputDraft] = useState<StoreInput>(() => createEmptyStore("L001", "Julho 2026"));
@@ -252,7 +256,7 @@ export default function DashboardHome() {
     else if (inputDraft.name || inputDraft.city || inputDraft.grossSales > 0) roster.push(inputDraft);
     return roster;
   }, [storeInputs, inputDraft]);
-  const importStatuses = useMemo(() => buildImportStatus(importRoster, dbSnapshots ?? [], inputDraft.referenceMonth || period), [importRoster, dbSnapshots, inputDraft.referenceMonth, period]);
+  const importStatuses = useMemo(() => buildImportStatus(importRoster, dbSnapshots ?? [], period), [importRoster, dbSnapshots, period]);
   const [selectedStoreId, setSelectedStoreId] = useState("L001");
   const [search, setSearch] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -280,13 +284,11 @@ export default function DashboardHome() {
 
   useEffect(() => {
     const selectedRaw = storeInputs.find((store) => store.id === selectedStoreId);
-    if (selectedRaw) setInputDraft(selectedRaw);
-  }, [selectedStoreId, storeInputs]);
-
-  useEffect(() => {
-    const selectedRaw = storeInputs.find((store) => store.id === selectedStoreId);
-    if (selectedRaw) setInputDraft(selectedRaw);
-  }, [selectedStoreId]);
+    setInputDraft((current) => {
+      const identity = current.id === selectedStoreId ? current : selectedRaw;
+      return identity ? selectStoreAtReferenceMonth(identity, period, dbSnapshots ?? []) : current;
+    });
+  }, [selectedStoreId, storeInputs, dbSnapshots, period]);
 
   const parameters = useMemo(() => ({ ...DEFAULT_PARAMETERS, commissionRate: commissionRate / 100, operatingRate: operatingRate / 100 }), [commissionRate, operatingRate]);
   // Lojas da competência ativa: prioriza os snapshots mensais; sem snapshot, usa o registro atual da loja se for do mesmo mês.
@@ -318,11 +320,15 @@ export default function DashboardHome() {
   const openStore = (id: string, view: ViewKey = "dre") => {
     setSelectedStoreId(id);
     const raw = storeInputs.find((store) => store.id === id);
-    if (raw) setInputDraft(raw);
+    if (raw) setInputDraft(selectStoreAtReferenceMonth(raw, period, dbSnapshots ?? []));
     setActiveView(view);
   };
 
   const updateDraft = (key: keyof StoreInput, value: string) => {
+    if (key === "referenceMonth") {
+      setPeriod(value);
+      return;
+    }
     const numericFields: Array<keyof StoreInput> = ["grossSales", "orders", "newCustomers", "promoSales", "promoOrders", "promoTicket", "promoNewCustomers", "recoveredCustomers", "storePromoInvestment", "ifoodPromoInvestment", "promoReturn", "roas", "adSales", "adTicket", "adOrders", "adNewCustomers", "cac", "adVisits", "conversion", "adInvestment", "costPerOrder", "cmv"];
     setInputDraft((current) => ({ ...current, [key]: numericFields.includes(key) ? parseBrl(value) : value } as StoreInput));
   };
@@ -469,14 +475,14 @@ export default function DashboardHome() {
             <StoresView stores={filteredStores} search={search} setSearch={setSearch} onOpen={openStore} />
           )}
           {activeView === "dre" && selectedStore && (
-            <DreView store={selectedStore} stores={stores} history={history} onSelect={(id) => openStore(id, "dre")} onEdit={() => { setInputDraft(storeInputs.find((item) => item.id === selectedStore.id) ?? createEmptyStore(selectedStore.id, selectedStore.referenceMonth)); navigate("input"); }} />
+            <DreView store={selectedStore} stores={stores} history={history} onSelect={(id) => openStore(id, "dre")} onEdit={() => openStore(selectedStore.id, "input")} />
           )}
           {activeView === "dre" && !selectedStore && <EmptyStoreView onNewStore={addNewStore} />}
           {activeView === "analysis" && <AnalysisView stores={stores} />}
           {activeView === "products" && <ProductsView stores={stores} />}
           {activeView === "input" && (
             <>
-              <InputView draft={inputDraft} updateDraft={updateDraft} updateProduct={updateProduct} saveDraft={saveDraft} onNewStore={addNewStore} onImport={() => document.getElementById("file-upload")?.click()} commissionRate={commissionRate} operatingRate={operatingRate} setCommissionRate={setCommissionRate} setOperatingRate={setOperatingRate} importStatuses={importStatuses} onSelectStore={(id: string) => { setSelectedStoreId(id); const selected = storeInputs.find((store) => store.id === id); if (selected) setInputDraft(selectStoreAtReferenceMonth(selected, inputDraft.referenceMonth || period)); }} />
+              <InputView draft={inputDraft} updateDraft={updateDraft} updateProduct={updateProduct} saveDraft={saveDraft} onNewStore={addNewStore} onImport={() => document.getElementById("file-upload")?.click()} commissionRate={commissionRate} operatingRate={operatingRate} setCommissionRate={setCommissionRate} setOperatingRate={setOperatingRate} importStatuses={importStatuses} onSelectStore={(id: string) => openStore(id, "input")} />
               <input id="file-upload" type="file" style={{ display: "none" }} onChange={handleFileUpload} accept=".csv,.xlsx,.xls,.pdf" />
             </>
           )}

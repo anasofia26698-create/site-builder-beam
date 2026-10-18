@@ -208,6 +208,16 @@ export const DEFAULT_PARAMETERS = {
   cmvAlert: 0.7,
 };
 
+// Comissão iFood: 14% até Setembro 2026; 10,5% a partir de Outubro 2026.
+export const COMMISSION_RATE_FROM_OCTOBER_2026 = 0.105;
+
+export const getCommissionRateForMonth = (referenceMonth: string): number => {
+  const months = REFERENCE_MONTHS_2026 as readonly string[];
+  const index = months.indexOf(referenceMonth);
+  if (index < 0) return DEFAULT_PARAMETERS.commissionRate;
+  return index >= months.indexOf("Outubro 2026") ? COMMISSION_RATE_FROM_OCTOBER_2026 : DEFAULT_PARAMETERS.commissionRate;
+};
+
 const productCatalog = [
   { category: "Dermocosméticos", name: "Protetor solar FPS 60" },
   { category: "Vitaminas", name: "Vitamina D 2.000 UI" },
@@ -440,7 +450,7 @@ export const buildHistoryForStore = (storeId: string, allSnapshots: StoreSnapsho
     const key = monthKeyFromReference(snap.referenceMonth);
     if (!key) return;
     const input = mapPersistedStore(snap as any);
-    const metrics = calculateMetrics(input);
+    const metrics = calculateMetrics(input, { ...DEFAULT_PARAMETERS, commissionRate: getCommissionRateForMonth(snap.referenceMonth) });
     mapByMonthKey.set(key, metrics);
   });
 
@@ -525,12 +535,12 @@ export type SimulationResult = SimulationInput & {
   netMarginPct: number;
 };
 
-export const calculateSimulation = (input: SimulationInput): SimulationResult => {
+export const calculateSimulation = (input: SimulationInput, commissionRate = COMMISSION_RATE_FROM_OCTOBER_2026): SimulationResult => {
   const grossSales = Math.max(0, parseBrl(input.grossSales));
   const cmv = Math.max(0, parseBrl(input.cmv));
   const storePromoInvestment = Math.max(0, parseBrl(input.storePromoInvestment));
   const adInvestment = Math.max(0, parseBrl(input.adInvestment));
-  const commission = grossSales * 0.14;
+  const commission = grossSales * commissionRate;
   const operatingCost = grossSales * 0.05;
   const totalDeductions = storePromoInvestment + adInvestment + commission + operatingCost;
   const grossMargin = grossSales - cmv;

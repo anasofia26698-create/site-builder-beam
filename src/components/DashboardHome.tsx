@@ -231,7 +231,12 @@ export default function DashboardHome() {
   const saveStoreMutation = useSaveStore();
 
   const [activeView, setActiveView] = useState<ViewKey>("overview");
-  const [period, setPeriod] = useState("Julho 2026");
+  const [period, setPeriodState] = useState("Julho 2026");
+  const periodTouchedRef = useRef(false);
+  const setPeriod = (value: string) => {
+    periodTouchedRef.current = true;
+    setPeriodState(value);
+  };
   const [localStores, setLocalStores] = useState<StoreInput[]>([]);
   const [inputDraft, setInputDraft] = useState<StoreInput>(() => createEmptyStore("L001", "Julho 2026"));
 
@@ -249,6 +254,21 @@ export default function DashboardHome() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [commissionRate, setCommissionRate] = useState(DEFAULT_PARAMETERS.commissionRate * 100);
   const [operatingRate, setOperatingRate] = useState(DEFAULT_PARAMETERS.operatingRate * 100);
+
+  // Mês padrão inteligente: abre no mês mais recente com registros salvos.
+  useEffect(() => {
+    if (periodTouchedRef.current || !dbSnapshots?.length) return;
+    const latest = [...REFERENCE_MONTHS_2026].reverse().find((month) => dbSnapshots.some((snapshot) => snapshot.referenceMonth === month));
+    if (latest) {
+      periodTouchedRef.current = true;
+      setPeriodState(latest);
+    }
+  }, [dbSnapshots]);
+
+  // Comissão padrão da competência: 14% até Set/2026, 10,5% a partir de Out/2026.
+  useEffect(() => {
+    setCommissionRate(getCommissionRateForMonth(period) * 100);
+  }, [period]);
 
   useEffect(() => {
     localStorage.setItem("margem-clara-stores", JSON.stringify(localStores));

@@ -459,7 +459,7 @@ export default function DashboardHome() {
           </div>
 
           {activeView === "overview" && (
-            <OverviewView total={total} stores={stores} ranking={ranking} criticalStores={criticalStores} lowRoasStores={lowRoasStores} consolidatedHistory={consolidatedHistory} period={period} setPeriod={setPeriod} onOpen={openStore} />
+            <OverviewView total={total} stores={stores} ranking={ranking} criticalStores={criticalStores} lowRoasStores={lowRoasStores} consolidatedHistory={consolidatedHistory} period={period} setPeriod={setPeriod} onOpen={openStore} onInsertData={addNewStore} />
           )}
           {activeView === "stores" && (
             <StoresView stores={filteredStores} search={search} setSearch={setSearch} onOpen={openStore} />
@@ -539,7 +539,7 @@ function SimulationView() {
   </>;
 }
 
-function OverviewView({ total, stores, ranking, criticalStores, lowRoasStores, consolidatedHistory, period, setPeriod, onOpen }: { total: { grossSales: number; cmv: number; netSales: number; grossMargin: number; netMargin: number; orders: number; adInvestment: number; promoInvestment: number }; stores: StoreMetrics[]; ranking: StoreMetrics[]; criticalStores: StoreMetrics[]; lowRoasStores: StoreMetrics[]; consolidatedHistory: Array<{ period: string; grossSales: number | null; netMarginPct: number | null }>; period: string; setPeriod: (value: string) => void; onOpen: (id: string, view?: ViewKey) => void }) {
+function OverviewView({ total, stores, ranking, criticalStores, lowRoasStores, consolidatedHistory, period, setPeriod, onOpen, onInsertData }: { total: { grossSales: number; cmv: number; netSales: number; grossMargin: number; netMargin: number; orders: number; adInvestment: number; promoInvestment: number }; stores: StoreMetrics[]; ranking: StoreMetrics[]; criticalStores: StoreMetrics[]; lowRoasStores: StoreMetrics[]; consolidatedHistory: Array<{ period: string; grossSales: number | null; netMarginPct: number | null }>; period: string; setPeriod: (value: string) => void; onOpen: (id: string, view?: ViewKey) => void; onInsertData: () => void }) {
   const selectedPeriodLabel = period.slice(0, 3);
   const selectedPeriodData = consolidatedHistory.find((item) => item.period === selectedPeriodLabel);
   const overviewHistory = consolidatedHistory;

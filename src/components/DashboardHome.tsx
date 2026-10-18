@@ -285,7 +285,15 @@ export default function DashboardHome() {
   }, [selectedStoreId]);
 
   const parameters = useMemo(() => ({ ...DEFAULT_PARAMETERS, commissionRate: commissionRate / 100, operatingRate: operatingRate / 100 }), [commissionRate, operatingRate]);
-  const stores = useMemo(() => calculateAll(storeInputs, parameters), [storeInputs, parameters]);
+  // Lojas da competência ativa: prioriza os snapshots mensais; sem snapshot, usa o registro atual da loja se for do mesmo mês.
+  const periodInputs = useMemo(() => {
+    const snapshotInputs = (dbSnapshots ?? [])
+      .filter((snapshot) => snapshot.referenceMonth === period)
+      .map((snapshot) => mapPersistedStore(snapshot as unknown as PersistedStoreRecord));
+    if (snapshotInputs.length) return snapshotInputs;
+    return storeInputs.filter((store) => store.referenceMonth === period);
+  }, [dbSnapshots, storeInputs, period]);
+  const stores = useMemo(() => calculateAll(periodInputs, parameters), [periodInputs, parameters]);
   const selectedStore = stores.find((store) => store.id === selectedStoreId) ?? stores[0];
   const total = useMemo(() => stores.reduce((acc, store) => ({
     grossSales: acc.grossSales + store.grossSales,

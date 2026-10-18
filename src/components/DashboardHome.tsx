@@ -98,6 +98,10 @@ type ChartTooltipProps = {
 
 const chartColors = ["#ff7357", "#739a86", "#315f68", "#e1a254", "#a9bcb4"];
 
+// Simulador usa a comissão vigente da competência atual (Outubro 2026: 10,5%).
+const SIMULATION_COMMISSION_RATE = getCommissionRateForMonth("Outubro 2026");
+const SIMULATION_COMMISSION_LABEL = formatPercent(SIMULATION_COMMISSION_RATE);
+
 function ChartTooltip({ active, payload, label, percentage = false }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
@@ -500,7 +504,7 @@ function SimulationView() {
   const [input, setInput] = useState<SimulationInput>({ grossSales: 0, cmv: 0, storePromoInvestment: 0, adInvestment: 0 });
   const [scenarioBaseline, setScenarioBaseline] = useState<number | null>(null);
   const [scenarioName, setScenarioName] = useState("Ajuste manual");
-  const result = useMemo(() => calculateSimulation(input), [input]);
+  const result = useMemo(() => calculateSimulation(input, SIMULATION_COMMISSION_RATE), [input]);
   const maxInvestment = result.grossSales * 0.5;
   const updateInput = (key: keyof SimulationInput, value: number) => {
     setScenarioBaseline(null);

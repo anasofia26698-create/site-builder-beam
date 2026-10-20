@@ -23,3 +23,4 @@
 - Gráficos de promoções e CAC/ticket agora exibem nomes das lojas com código completo no tooltip; Visão consolidada recebeu Pontos de atenção dinâmicos por período.
 - DRE individual recebeu Pontos de atenção clicáveis antes da DRE, com cobertura de CMV, consolidação de até três meses e âncoras para margem, CMV, promoções e anúncios.
 - Farmácias App abre sem login/verificação, usa o catálogo oficial L001–L012, oferece mês ou últimos 3 meses e apresenta valores ausentes como Pendente; comissão padrão 13% e operacional 5% preservados.
+- Inserir dados agora usa somente o catálogo oficial L001–L012, ignora registros externos na interface, remove criação automática de novos IDs e avisa sobre registros fora do catálogo para a etapa de limpeza do banco.

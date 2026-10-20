@@ -514,3 +514,5 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .fapp-month-table button.selected { background: #fff0f0; border-color: #db3339; box-shadow: inset 3px 0 #db3339; }
 .fapp-history i { background: #08a0ae; }
 @media (max-width: 760px) { .fapp-grid, .fapp-metric-grid { grid-template-columns: 1fr; } .fapp-panel, .fapp-section { min-width: 0; } }
+
+.catalog-warning { margin: 10px 0; color: #765b2f; background: #fff8e8; border-color: #e4c98f; }

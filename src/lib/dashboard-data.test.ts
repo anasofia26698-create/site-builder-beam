@@ -1,11 +1,19 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { aggregatePeriodMetrics, aggregateProducts, aggregateSegments, buildImportStatus, calculateMetrics, createEmptyStore, getCommissionRateForMonth, getLatestDataMonths, getStoreAlerts, selectStoreAtReferenceMonth, togglePeriodMonth } from "./dashboard-data";
+import { aggregatePeriodMetrics, aggregateProducts, aggregateSegments, buildImportStatus, calculateMetrics, createEmptyStore, getCommissionRateForMonth, getLatestDataMonths, getStoreAlerts, OFFICIAL_STORE_CATALOG, resolveStoreInputs, selectStoreAtReferenceMonth, togglePeriodMonth } from "./dashboard-data";
 
 const store = { ...createEmptyStore("L001", "Setembro 2026"), name: "Loja teste", city: "Curitiba", grossSales: 900, orders: 12, cmv: 200 };
 const snapshot = { ...store, id: "snapshot-id", storeId: "L001", referenceMonth: "Setembro 2026", grossSales: 1500, orders: 20, productsJson: JSON.stringify([{ category: "Saúde", name: "Produto", orders: 3, shareOrders: 0.15, revenue: 200 }]) };
 
 describe("Entrada por competência", () => {
+  test("resolve somente as 12 lojas oficiais e ignora registros fora do catálogo", () => {
+    const outside = { ...snapshot, id: "L013", name: "Duplicada", city: "Curitiba", storeId: "L013" };
+    const resolved = resolveStoreInputs([snapshot, outside], []);
+    assert.equal(OFFICIAL_STORE_CATALOG.length, 12);
+    assert.deepEqual(resolved.map((item) => item.id), OFFICIAL_STORE_CATALOG.map((item) => item.id));
+    assert.equal(resolved.some((item) => item.id === "L013"), false);
+    assert.equal(resolved.find((item) => item.id === "L001")?.name, OFFICIAL_STORE_CATALOG[0].name);
+  });
   test("carrega valores salvos e preserva o ID da loja, não o ID do snapshot", () => {
     const loaded = selectStoreAtReferenceMonth(store, "Setembro 2026", [snapshot]);
     assert.equal(loaded.id, "L001");

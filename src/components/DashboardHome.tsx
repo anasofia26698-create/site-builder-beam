@@ -20,7 +20,6 @@ import {
   LayoutDashboard,
   Menu,
   Package,
-  Plus,
   Search,
   Settings2,
   ShoppingBag,
@@ -82,6 +81,7 @@ import {
   getTopProducts,
   getCommissionRateForMonth,
   mapPersistedStore,
+  isOfficialStoreId,
   resolveStoreInputs,
   selectStoreAtReferenceMonth,
   storeCompetencyKey,
@@ -260,14 +260,13 @@ export default function DashboardHome() {
   const overviewAggregate = useMemo(() => aggregatePeriodMetrics((dbSnapshots ?? []) as Array<PersistedStoreRecord & { storeId: string; referenceMonth: string }>, overviewMonths), [dbSnapshots, overviewMonths]);
   const [inputDraft, setInputDraft] = useState<StoreInput>(() => createEmptyStore("L001", "Julho 2026"));
 
-  const storeInputs = useMemo(() => resolveStoreInputs(dbStores, localStores), [dbStores, localStores]);
-  const importRoster = useMemo(() => {
-    const roster = [...storeInputs];
-    const draftIndex = roster.findIndex((store) => store.id === inputDraft.id);
-    if (draftIndex >= 0) roster[draftIndex] = inputDraft;
-    else if (inputDraft.name || inputDraft.city || inputDraft.grossSales > 0) roster.push(inputDraft);
-    return roster;
-  }, [storeInputs, inputDraft]);
+  const storeInputs = useMemo(() => resolveStoreInputs(dbStores, []), [dbStores]);
+  const importRoster = storeInputs;
+  const outOfCatalogCount = useMemo(() => {
+    const databaseOutside = (dbStores ?? []).filter((store) => !isOfficialStoreId(store.id)).length;
+    const localOutside = localStores.filter((store) => !isOfficialStoreId(store.id)).length;
+    return databaseOutside + localOutside;
+  }, [dbStores, localStores]);
   const importStatuses = useMemo(() => buildImportStatus(importRoster, dbSnapshots ?? [], period), [importRoster, dbSnapshots, period]);
   const [selectedStoreId, setSelectedStoreId] = useState("L001");
   const [search, setSearch] = useState("");
@@ -402,16 +401,6 @@ export default function DashboardHome() {
     }
   };
 
-  const addNewStore = () => {
-    if (!window.confirm("Esta é uma nova unidade física? Para lançar outro mês, selecione uma loja existente no Controle de importação.")) return;
-    const nextNumber = storeInputs.reduce((max, store) => Math.max(max, Number(store.id.replace(/\D/g, "")) || 0), 0) + 1;
-    const newStore = createEmptyStore(`L${String(nextNumber).padStart(3, "0")}`, period);
-    setLocalStores((current) => [...current, newStore]);
-    setInputDraft(newStore);
-    setSelectedStoreId(newStore.id);
-    setActiveView("input");
-    toast.info("Nova loja criada", { description: `Preencha os dados reais da ${newStore.id} e clique em Calcular e salvar.` });
-  };
 
   const exportCsv = () => {
     const header = ["ID", "Loja", "Cidade", "Venda bruta", "Pedidos", "Ticket médio", "CMV", "Margem bruta", "Margem líquida", "ROAS", "Investimento anúncios", "Investimento promoções"];
@@ -474,12 +463,12 @@ export default function DashboardHome() {
           {activeView === "dre" && selectedStore && (
             <DreView store={selectedStore} stores={stores} history={history} snapshots={dbSnapshots ?? []} selectedMonths={overviewMonths.length ? overviewMonths : [period]} onSelect={(id) => openStore(id, "dre")} onEdit={() => openStore(selectedStore.id, "input")} />
           )}
-          {activeView === "dre" && !selectedStore && <EmptyStoreView onNewStore={addNewStore} />}
+          {activeView === "dre" && !selectedStore && <EmptyStoreView onInsertData={() => navigate("input")} />}
           {activeView === "analysis" && <AnalysisView stores={stores} period={period} />}
           {activeView === "products" && <ProductsView stores={stores} />}
           {activeView === "input" && (
             <>
-              <InputView draft={inputDraft} updateDraft={updateDraft} updateProduct={updateProduct} saveDraft={saveDraft} onNewStore={addNewStore} commissionRate={commissionRate} operatingRate={operatingRate} setCommissionRate={setCommissionRate} setOperatingRate={setOperatingRate} importStatuses={importStatuses} onSelectStore={(id: string) => openStore(id, "input")} />
+              <InputView draft={inputDraft} updateDraft={updateDraft} updateProduct={updateProduct} saveDraft={saveDraft} commissionRate={commissionRate} operatingRate={operatingRate} setCommissionRate={setCommissionRate} setOperatingRate={setOperatingRate} importStatuses={importStatuses} outOfCatalogCount={outOfCatalogCount} onSelectStore={(id: string) => openStore(id, "input")} />
 
             </>
           )}
@@ -636,8 +625,8 @@ function StoresView({ stores, search, setSearch, onOpen }: { stores: StoreMetric
   </>;
 }
 
-function EmptyStoreView({ onNewStore }: { onNewStore: () => void }) {
-  return <section className="section-block"><div className="panel empty-state-panel"><div className="eyebrow">Análise por Loja / aguardando cadastro</div><h2 className="panel-title">Nenhuma loja foi cadastrada ainda.</h2><p className="panel-kicker">A DRE, a evolução de margens, os indicadores de promoções e anúncios e os produtos aparecerão assim que a primeira loja real for salva.</p><button className="control primary" onClick={onNewStore}><Plus size={14} /> Cadastrar primeira loja</button></div></section>;
+function EmptyStoreView({ onInsertData }: { onInsertData: () => void }) {
+  return <section className="section-block"><div className="panel empty-state-panel"><div className="eyebrow">Análise por Loja / aguardando dados</div><h2 className="panel-title">Nenhum dado lançado para as lojas oficiais.</h2><p className="panel-kicker">A DRE, a evolução de margens, os indicadores de promoções e anúncios e os produtos aparecerão assim que uma competência real for salva.</p><button className="control primary" onClick={onInsertData}><Plus size={14} /> Inserir dados de uma loja oficial</button></div></section>;
 }
 
 function OperationalStatsPanel({ store }: { store: StoreMetrics }) {
@@ -784,10 +773,11 @@ function ImportStatusPanel({ statuses, referenceMonth, onSelectStore }: { status
   return <section className="section-block" style={{ marginTop: 9 }}><div className="panel import-status-panel"><div className="panel-header"><div><h3 className="panel-title">Controle de importação</h3><div className="panel-kicker">Competência selecionada: {referenceMonth} · chave loja + mês</div></div><div className="import-status-summary"><span className="import-count imported"><CheckCircle2 size={13} /> {importedCount} importada{importedCount === 1 ? "" : "s"}</span><span className="import-count pending"><AlertTriangle size={13} /> {pendingCount} pendente{pendingCount === 1 ? "" : "s"}</span></div></div>{statuses.length ? <div className="import-status-grid">{statuses.map((status) => <button type="button" className={`import-status-card ${status.imported ? "is-imported" : "is-pending"}`} key={status.id} onClick={() => onSelectStore(status.id)}><span className="import-status-icon">{status.imported ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}</span><span className="import-status-copy"><strong>{status.id} · {status.name}</strong><small>{status.city}</small></span><span className="import-status-label">{status.imported ? "Importada" : "Pendente"}</span></button>)}</div> : <div className="empty-state"><strong>Nenhuma loja cadastrada nesta base.</strong><span>Use “Nova loja” para iniciar a importação da competência.</span></div>}<div className="inline-form-tip import-status-note"><strong>Como evitar duplicidade:</strong> se a loja já estiver como “Importada”, salvar novamente a mesma competência apenas atualiza os dados existentes; ao escolher outro mês, uma nova competência é criada sem apagar o histórico.</div></div></section>;
 }
 
-function InputView({ draft, updateDraft, updateProduct, saveDraft, onNewStore, commissionRate, operatingRate, setCommissionRate, setOperatingRate, importStatuses, onSelectStore }: { draft: StoreInput; updateDraft: (key: keyof StoreInput, value: string) => void; updateProduct: (index: number, field: keyof Product, value: string) => void; saveDraft: () => void; onNewStore: () => void; commissionRate: number; operatingRate: number; setCommissionRate: (value: number) => void; setOperatingRate: (value: number) => void; importStatuses: StoreImportStatus[]; onSelectStore: (id: string) => void }) {
+function InputView({ draft, updateDraft, updateProduct, saveDraft, commissionRate, operatingRate, setCommissionRate, setOperatingRate, importStatuses, outOfCatalogCount, onSelectStore }: { draft: StoreInput; updateDraft: (key: keyof StoreInput, value: string) => void; updateProduct: (index: number, field: keyof Product, value: string) => void; saveDraft: () => void; commissionRate: number; operatingRate: number; setCommissionRate: (value: number) => void; setOperatingRate: (value: number) => void; importStatuses: StoreImportStatus[]; outOfCatalogCount: number; onSelectStore: (id: string) => void }) {
   return <>
+    {outOfCatalogCount > 0 && <div className="inline-form-tip catalog-warning"><strong>Registros fora do catálogo: {outOfCatalogCount}.</strong> Ver na etapa de limpeza.</div>}
     <ImportStatusPanel statuses={importStatuses} referenceMonth={draft.referenceMonth} onSelectStore={onSelectStore} />
-    <section className="section-block" style={{ marginTop: 9 }}><div className="panel dark"><div className="panel-header"><div><h3 className="panel-title">Fluxo de alimentação</h3><div className="panel-kicker">Dia 1–5: receber · Dia 5–7: alimentar · Dia 8: decidir</div></div><div className="top-actions"><button className="control" onClick={onNewStore}><Plus size={14} /> Nova loja</button></div></div><div className="alert-list"><div className="alert-row"><div className="alert-dot amber" /><div><strong>Importação controlada por competência</strong><p>Confira o painel acima antes de salvar. Lojas importadas podem ser atualizadas no mesmo mês sem criar duplicidade; outra competência preserva o histórico.</p></div></div></div></div></section>
+    <section className="section-block" style={{ marginTop: 9 }}><div className="panel dark"><div className="panel-header"><div><h3 className="panel-title">Fluxo de alimentação</h3><div className="panel-kicker">Dia 1–5: receber · Dia 5–7: alimentar · Dia 8: decidir</div></div></div><div className="alert-list"><div className="alert-row"><div className="alert-dot amber" /><div><strong>Importação controlada por competência</strong><p>Use somente uma das 12 lojas oficiais do catálogo. Para lançar outro mês, selecione uma loja existente no Controle de importação.</p></div></div></div></div></section>
     <section className="section-block form-shell"><div className="form-step"><div className="section-heading"><div><div className="eyebrow">Entrada 01 / cadastro</div><h3>Desempenho do mês</h3><p>Fonte: Portal do Parceiro iFood · aba Desempenho.</p></div><span className="panel-note">{draft.id}</span></div><div className="form-grid"><InputField label="Nome da loja" value={draft.name} onChange={(value) => updateDraft("name", value)} /><InputField label="Cidade" value={draft.city} onChange={(value) => updateDraft("city", value)} /><label className="form-label">Mês de referência<div><select className="select-field" aria-label="Mês de referência da loja" value={draft.referenceMonth} onChange={(event) => updateDraft("referenceMonth", event.target.value)} style={{ width: "100%", marginTop: 6 }}>{REFERENCE_MONTHS_2026.map((referenceMonth) => <option key={referenceMonth} value={referenceMonth}>{referenceMonth}</option>)}</select></div></label><InputField label="Venda bruta total" value={draft.grossSales} onChange={(value) => updateDraft("grossSales", value)} prefix="R$" /><InputField label="Total de pedidos" value={draft.orders} onChange={(value) => updateDraft("orders", value)} /><InputField label="Novos clientes" value={draft.newCustomers} onChange={(value) => updateDraft("newCustomers", value)} /></div></div>
     <div className="form-step"><div className="section-heading"><div><div className="eyebrow">Entrada 02 / promoções</div><h3>Investimento em promoções</h3><p>Separe o que sai da loja do que é financiado pelo iFood.</p></div><span className="panel-note">iFood / promoções</span></div><div className="form-grid"><InputField label="Vendas com promoção" value={draft.promoSales} onChange={(value) => updateDraft("promoSales", value)} prefix="R$" /><InputField label="Pedidos com promoção" value={draft.promoOrders} onChange={(value) => updateDraft("promoOrders", value)} /><InputField label="Investimento da loja" value={draft.storePromoInvestment} onChange={(value) => updateDraft("storePromoInvestment", value)} prefix="R$" /><InputField label="Investimento do iFood" value={draft.ifoodPromoInvestment} onChange={(value) => updateDraft("ifoodPromoInvestment", value)} prefix="R$" /><InputField label="Retorno por real investido" value={draft.promoReturn} onChange={(value) => updateDraft("promoReturn", value)} prefix="x" /><InputField label="Clientes recuperados" value={draft.recoveredCustomers} onChange={(value) => updateDraft("recoveredCustomers", value)} /></div></div>
     <div className="form-step"><div className="section-heading"><div><div className="eyebrow">Entrada 03 / anúncios</div><h3>Aquisição paga</h3><p>Fonte: Portal do Parceiro iFood · aba Anúncios.</p></div><span className="panel-note">iFood / anúncios</span></div><div className="form-grid"><label className="form-label">ROAS calculado<input readOnly value={draft.adInvestment > 0 ? `${(draft.adSales / draft.adInvestment).toFixed(2).replace(".", ",")}x` : "Sem investimento em anúncios"} /></label><InputField label="Vendas via anúncios" value={draft.adSales} onChange={(value) => updateDraft("adSales", value)} prefix="R$" /><InputField label="Pedidos via anúncios" value={draft.adOrders} onChange={(value) => updateDraft("adOrders", value)} /><InputField label="Visitas via anúncios" value={draft.adVisits} onChange={(value) => updateDraft("adVisits", value)} /><InputField label="Conversão no cardápio" value={draft.conversion} onChange={(value) => updateDraft("conversion", value)} prefix="%" /><InputField label="Investimento total" value={draft.adInvestment} onChange={(value) => updateDraft("adInvestment", value)} prefix="R$" /></div></div>

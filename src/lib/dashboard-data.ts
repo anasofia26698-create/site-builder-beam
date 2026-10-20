@@ -114,11 +114,31 @@ export const mapPersistedStore = (record: PersistedStoreRecord): StoreInput => (
 
 export const storeCompetencyKey = (storeId: string, referenceMonth: string) => `${storeId}::${referenceMonth}`;
 
-export const resolveStoreInputs = (dbStores: PersistedStoreRecord[] | null | undefined, localStores: StoreInput[]) => {
-  const byStoreId = new Map<string, StoreInput>();
-  (dbStores ?? []).map(mapPersistedStore).forEach((store) => byStoreId.set(store.id, store));
-  localStores.forEach((store) => byStoreId.set(store.id, store));
-  return Array.from(byStoreId.values());
+export const OFFICIAL_STORE_CATALOG = [
+  { id: "L001", name: "Farmácia Farmasull Hauer - 01", city: "Curitiba" },
+  { id: "L002", name: "Farmasull Alto Boqueirão", city: "Curitiba" },
+  { id: "L003", name: "Farmasull Boqueirão", city: "Curitiba" },
+  { id: "L004", name: "Farmasull Cajuru", city: "Curitiba" },
+  { id: "L005", name: "Farmasull Centenario", city: "Curitiba" },
+  { id: "L006", name: "Farmasull Novo Mundo", city: "Curitiba" },
+  { id: "L007", name: "Farmasull Pinhais", city: "Pinhais" },
+  { id: "L008", name: "Farmasull Santa Candida", city: "Curitiba" },
+  { id: "L009", name: "Farmasull São José dos Pinhais", city: "São José dos Pinhais" },
+  { id: "L010", name: "Farmasull Uberaba", city: "Curitiba" },
+  { id: "L011", name: "Farmasull Vila Amelia", city: "Pinhais" },
+  { id: "L012", name: "Farmasull Vitoria Regia", city: "Curitiba" },
+] as const;
+
+export const isOfficialStoreId = (storeId: string) => OFFICIAL_STORE_CATALOG.some((store) => store.id === storeId);
+
+export const resolveStoreInputs = (dbStores: PersistedStoreRecord[] | null | undefined, _localStores: StoreInput[] = []) => {
+  const savedByStoreId = new Map<string, StoreInput>();
+  (dbStores ?? []).map(mapPersistedStore).filter((store) => isOfficialStoreId(store.id)).forEach((store) => savedByStoreId.set(store.id, store));
+  return OFFICIAL_STORE_CATALOG.map((catalogStore) => ({
+    ...(savedByStoreId.get(catalogStore.id) ?? createEmptyStore(catalogStore.id, "Julho 2026")),
+    name: catalogStore.name,
+    city: catalogStore.city,
+  }));
 };
 
 export type StoreImportStatus = {

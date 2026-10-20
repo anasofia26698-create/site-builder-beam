@@ -225,10 +225,11 @@ export const DEFAULT_PARAMETERS = {
 export const COMMISSION_RATE_FROM_OCTOBER_2026 = 0.105;
 
 export const getCommissionRateForMonth = (referenceMonth: string): number => {
-  const months = REFERENCE_MONTHS_2026 as readonly string[];
-  const index = months.indexOf(referenceMonth);
-  if (index < 0) return DEFAULT_PARAMETERS.commissionRate;
-  return index >= months.indexOf("Outubro 2026") ? COMMISSION_RATE_FROM_OCTOBER_2026 : DEFAULT_PARAMETERS.commissionRate;
+  const normalized = referenceMonth.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const year = Number(normalized.match(/\d{4}/)?.[0]);
+  const months = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+  const month = months.findIndex((name) => normalized.includes(name));
+  return year > 2026 || (year === 2026 && month >= 9) ? COMMISSION_RATE_FROM_OCTOBER_2026 : DEFAULT_PARAMETERS.commissionRate;
 };
 
 const productCatalog = [
@@ -323,7 +324,7 @@ export const createEmptyStore = (id: string, referenceMonth = "Julho 2026"): Sto
 });
 
 export const calculateMetrics = (store: StoreInput, parameters = DEFAULT_PARAMETERS): StoreMetrics => {
-  const commission = store.grossSales * parameters.commissionRate;
+  const commission = store.grossSales * getCommissionRateForMonth(store.referenceMonth);
   const operatingCost = store.grossSales * parameters.operatingRate;
   const totalDeductions = store.storePromoInvestment + commission + store.adInvestment + operatingCost;
   const netSales = store.grossSales - totalDeductions;
@@ -488,11 +489,15 @@ export const buildHistoryForStore = (storeId: string, allSnapshots: StoreSnapsho
 };
 
 export const buildConsolidatedHistory = (stores: StoreMetrics[], allSnapshots: StoreSnapshotRecord[]) => {
-  const storeHistories = stores.map((store) => buildHistoryForStore(store.id, allSnapshots, store));
+  const identities = new Map(stores.map(store => [store.id, store]));
+  allSnapshots.forEach(snapshot => {
+    if (!identities.has(snapshot.storeId)) identities.set(snapshot.storeId, calculateMetrics(mapPersistedStore({ ...snapshot, id: snapshot.storeId } as PersistedStoreRecord)));
+  });
+  const storeHistories = [...identities.values()].map((store) => buildHistoryForStore(store.id, allSnapshots, store));
   return annualPeriods.map(({ label }, periodIndex) => {
     const monthlyPoints = storeHistories
       .map((history) => history[periodIndex])
-      .filter((point): point is NonNullable<typeof point> => Boolean(point) && point!.grossSales !== null);
+      .filter((point): point is NonNullable<typeof point> => point != null && point.grossSales !== null);
     const grossSales = monthlyPoints.reduce((sum, point) => sum + Number(point.grossSales ?? 0), 0);
     const weightedNetMargin = monthlyPoints.reduce((sum, point) => sum + Number(point.grossSales ?? 0) * Number(point.netMarginPct ?? 0), 0);
     return {
@@ -575,3 +580,5 @@ export const calculateSimulation = (input: SimulationInput, commissionRate = COM
     netMarginPct: grossSales ? netMargin / grossSales : 0,
   };
 };
+
+export const costPerRealSold = (netMarginPct: number) => 1 - netMarginPct;

@@ -483,3 +483,20 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .attention-value { color: #315f68; font: 600 11px "IBM Plex Mono", monospace; white-space: nowrap; }
 .attention-empty { padding: 18px; border: 1px dashed #c9d4c9; border-radius: 9px; color: #6d807e; font-size: 12px; }
 @media (max-width: 620px) { .attention-row { grid-template-columns: 1fr auto; } .attention-severity { grid-column: 1 / -1; } .attention-value { grid-column: 2; grid-row: 2; } }
+
+.dre-attention-panel { background: #fffaf0; }
+.dre-attention-list { display: grid; gap: 8px; }
+.dre-attention-row { display: grid; grid-template-columns: 76px minmax(0, 1fr) 18px; align-items: center; gap: 10px; width: 100%; padding: 12px; border: 1px solid #e4d9ca; border-left: 4px solid #e1a254; border-radius: 9px; background: #fffdf7; color: #183d46; text-align: left; cursor: pointer; }
+.dre-attention-row:hover { box-shadow: 0 5px 15px rgba(18,60,70,.08); }
+.dre-attention-row.critical { border-left-color: #ff7357; background: #fff5ef; }
+.dre-attention-row.positive { border-left-color: #739a86; background: #f2f8f1; }
+.dre-attention-severity { color: #9a5d45; font: 700 9px "IBM Plex Mono", monospace; text-transform: uppercase; }
+.dre-attention-row.critical .dre-attention-severity { color: #c6533d; }
+.dre-attention-row.positive .dre-attention-severity { color: #537c68; }
+.dre-attention-message { min-width: 0; font-size: 12px; line-height: 1.4; }
+.dre-attention-arrow { color: #719095; font-size: 20px; text-align: right; }
+.dre-attention-more { border: 0; background: transparent; color: #1b6d69; font: 600 11px "IBM Plex Mono", monospace; text-align: left; cursor: pointer; }
+.dre-attention-empty { padding: 14px; border: 1px dashed #c9d4c9; border-radius: 8px; color: #6d807e; font-size: 12px; }
+.dre-attention-highlight { animation: dre-attention-flash 2s ease-out; }
+@keyframes dre-attention-flash { 0%, 100% { box-shadow: none; } 15%, 55% { box-shadow: 0 0 0 4px rgba(255,115,87,.28); background-color: #fff2dc; } }
+@media (max-width: 620px) { .dre-attention-row { grid-template-columns: 1fr 18px; } .dre-attention-severity { grid-column: 1 / -1; } }

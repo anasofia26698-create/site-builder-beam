@@ -21,3 +21,4 @@
 - Dashboard Farmácias App agora consolida até 3 meses, recalcula percentuais sobre as somas, destaca os meses selecionados, consolida produtos por EAN e exibe cobertura, alertas e pendência de CMV.
 - Persistência de novos registros continua pendente de aprovação explícita do SQL; a tela não altera banco, tabelas, políticas ou dados existentes.
 - Gráficos de promoções e CAC/ticket agora exibem nomes das lojas com código completo no tooltip; Visão consolidada recebeu Pontos de atenção dinâmicos por período.
+- DRE individual recebeu Pontos de atenção clicáveis antes da DRE, com cobertura de CMV, consolidação de até três meses e âncoras para margem, CMV, promoções e anúncios.

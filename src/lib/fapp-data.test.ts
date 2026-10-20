@@ -1,6 +1,6 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { calculateFapp, emptyCampaign, emptyFapp, parsePortalProducts, type FappRecord } from "./fapp-data";
+import { aggregateFappPeriod, calculateFapp, emptyCampaign, emptyFapp, parsePortalProducts, type FappRecord } from "./fapp-data";
 
 const record = (changes: Partial<FappRecord> = {}): FappRecord => ({ ...emptyFapp("L001", "Outubro 2026"), gmv: 10000, orders: 100, ...changes });
 
@@ -45,5 +45,21 @@ describe("Farmácias App — cálculos", () => {
   test("projeta mês em andamento usando a data de corte informada", () => {
     const result = calculateFapp(record({ cutoff: "2026-10-10", closed: false, gmv: 1000 }));
     assert.equal(result.projection, 3100);
+  });
+
+  test("soma três meses, recalcula ticket e mantém margem pendente se faltar CMV", () => {
+    const result = aggregateFappPeriod([
+      record({ storeId: "L001", referenceMonth: "Agosto 2026", gmv: 1000, orders: 10, cmv: 400, products: [{ name: "Produto", ean: "789", orders: 1, units: 1, revenue: 100, unitCost: null }] }),
+      record({ storeId: "L001", referenceMonth: "Setembro 2026", gmv: 2000, orders: 20, cmv: null, products: [{ name: "Produto", ean: "789", orders: 2, units: 2, revenue: 200, unitCost: null }] }),
+      record({ storeId: "L002", referenceMonth: "Outubro 2026", gmv: 500, orders: 5, cmv: 200 }),
+    ], ["Agosto 2026", "Setembro 2026", "Outubro 2026"]);
+    assert.equal(result.gmv, 3500);
+    assert.equal(result.orders, 35);
+    assert.equal(result.ticket, 100);
+    assert.equal(result.netMargin, null);
+    assert.equal(result.pairs, 3);
+    assert.equal(result.possiblePairs, 6);
+    assert.equal(result.products[0]?.ean, "789");
+    assert.equal(result.products[0]?.revenue, 300);
   });
 });

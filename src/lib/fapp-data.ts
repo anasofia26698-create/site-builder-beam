@@ -48,3 +48,22 @@ export function parsePortalProducts(text:string){
  return {products:products.slice(0,10),unrecognized};
 }
 export function aggregateFappProducts(records:FappRecord[]){const map=new Map<string,FappProduct&{cost:number|null}>();records.forEach(r=>r.products.forEach(p=>{const key=p.ean||p.name;const old=map.get(key);map.set(key,{...p,orders:(old?.orders??0)+p.orders,units:(old?.units??0)+p.units,revenue:(old?.revenue??0)+p.revenue,cost:p.unitCost===null||old?.cost===null?null:(old?.cost??0)+p.unitCost*p.units})}));return [...map.values()].sort((a,b)=>b.revenue-a.revenue)}
+
+export function aggregateFappPeriod(records:FappRecord[], months:string[]){
+ const selected=records.filter(record=>months.includes(record.referenceMonth));
+ const active=selected.filter(record=>record.status!=='Inativa');
+ const results=selected.map(calculateFapp);
+ const gmv=selected.reduce((sum,record)=>sum+record.gmv,0);
+ const orders=selected.reduce((sum,record)=>sum+record.orders,0);
+ const commission=results.reduce((sum,result)=>sum+result.commission,0);
+ const freight=selected.reduce((sum,record)=>sum+record.freightUsed,0);
+ const actions=results.reduce((sum,result)=>sum+result.actions,0);
+ const infiniteShelfSales=selected.reduce((sum,record)=>sum+record.infiniteShelfSales,0);
+ const marginReady=active.length>0&&active.every(record=>record.cmv!==null);
+ const netMargin=marginReady?results.filter((_,index)=>active.includes(selected[index])).reduce((sum,result)=>sum+(result.netMargin??0),0):null;
+ const cancellation=active.length?active.reduce((sum,record)=>sum+record.cancellation,0)/active.length:null;
+ const rated=active.filter(record=>record.rating!==null);
+ const rating=rated.length?rated.reduce((sum,record)=>sum+(record.rating??0),0)/rated.length:null;
+ const storesWithData=new Set(selected.map(record=>record.storeId)).size;
+ return {months,selected,gmv,orders,ticket:orders?gmv/orders:0,commission,freight,actions,infiniteShelfSales,netMargin,netMarginPct:netMargin!==null&&gmv?netMargin/gmv:null,cancellation,rating,storesWithData,pairs:selected.length,possiblePairs:new Set(records.map(record=>record.storeId)).size*months.length,coverage:active.length?active.filter(record=>record.cmv!==null).length/active.length:0,products:aggregateFappProducts(selected)};
+}

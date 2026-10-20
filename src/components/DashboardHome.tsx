@@ -50,6 +50,8 @@ import {
   YAxis,
 } from "recharts";
 import { useSaveStore, useStoreRecords, useStoreSnapshots } from "@/lib/stores-api";
+import FarmaciasApp from "@/components/fapp/FarmaciasApp";
+import { Button } from "@/components/ui/button";
 import {
   costPerRealSold,
   DEFAULT_PARAMETERS,
@@ -270,6 +272,7 @@ export default function DashboardHome() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [commissionRate, setCommissionRate] = useState(DEFAULT_PARAMETERS.commissionRate * 100);
   const [operatingRate, setOperatingRate] = useState(DEFAULT_PARAMETERS.operatingRate * 100);
+  const [channel, setChannel] = useState<"ifood" | "fapp">("ifood");
 
   // Mês padrão inteligente: abre no mês mais recente com registros salvos.
   useEffect(() => {
@@ -438,9 +441,14 @@ export default function DashboardHome() {
 
   return (
     <div className="app-shell">
-      <SideNavigation activeView={activeView} onNavigate={navigate} open={mobileOpen} onClose={() => setMobileOpen(false)} />
+      {channel === "ifood" && <SideNavigation activeView={activeView} onNavigate={navigate} open={mobileOpen} onClose={() => setMobileOpen(false)} />}
       <main className="main-canvas">
         <div className="content-wrap">
+          <div className="channel-tabs" role="tablist" aria-label="Canal">
+            <Button variant={channel === "ifood" ? "default" : "outline"} role="tab" aria-selected={channel === "ifood"} onClick={() => setChannel("ifood")}>iFood</Button>
+            <Button variant={channel === "fapp" ? "default" : "outline"} role="tab" aria-selected={channel === "fapp"} onClick={() => setChannel("fapp")}>Farmácias App</Button>
+          </div>
+          {channel === "fapp" ? <FarmaciasApp period={period} setPeriod={setPeriod} catalog={storeInputs} ifoodSnapshots={dbSnapshots ?? []} /> : <>
           <div className="topbar fade-in">
             <div>
               <div className="eyebrow">{currentTitle.eyebrow}</div>
@@ -474,6 +482,7 @@ export default function DashboardHome() {
             </>
           )}
           {activeView === "simulator" && <SimulationView />}
+          </>}
         </div>
       </main>
     </div>

@@ -17,4 +17,6 @@
 - Formulário inclui códigos do portal, solicitações pendentes e Prateleira Infinita; dados ausentes permanecem vazios ou pendentes.
 - Persistência de Farmácias App permanece desabilitada nesta etapa para não alterar o banco sem aprovação do SQL.
 - Catálogo oficial ainda aguarda confirmação; nenhum ID ou nome novo foi criado no componente.
-- Farmácias App retirada da navegação; arquivos, funções, migração, tabelas, políticas e dados preservados para possível retorno futuro.
+- Farmácias App reativada na navegação com acesso restrito à equipe autorizada; arquivos, funções, migração, tabelas, políticas e dados preservados.
+- Dashboard Farmácias App agora consolida até 3 meses, recalcula percentuais sobre as somas, destaca os meses selecionados, consolida produtos por EAN e exibe cobertura, alertas e pendência de CMV.
+- Persistência de novos registros continua pendente de aprovação explícita do SQL; a tela não altera banco, tabelas, políticas ou dados existentes.

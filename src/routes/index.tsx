@@ -5,13 +5,13 @@ import DashboardHome from "@/components/DashboardHome";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dashboard iFood — Margem e rentabilidade por loja" },
+      { title: "Resultado — iFood e Farmácias App" },
       {
         name: "description",
         content:
-          "Painel de controle iFood: DRE por loja, comparativo de unidades, produtos, eficiência de anúncios e simulador de rentabilidade.",
+          "Resultados mensais das lojas no iFood e Farmácias App: margens, custos, campanhas e comparativo por competência.",
       },
-      { property: "og:title", content: "Dashboard iFood — Margem e rentabilidade por loja" },
+      { property: "og:title", content: "Resultado — iFood e Farmácias App" },
       {
         property: "og:description",
         content:

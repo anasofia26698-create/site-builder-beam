@@ -467,3 +467,19 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .fapp-coverage { margin-top: 15px; color: #6d807e; font: 10px "IBM Plex Mono", monospace; }
 .fapp-history > div { padding: 4px 2px; border-radius: 6px; }
 .fapp-history > div.period-highlight { background: #e8f2ed; box-shadow: inset 0 -3px #1b6d69; }
+
+.attention-panel { background: #fffaf0; }
+.attention-list { display: grid; gap: 9px; }
+.attention-row { display: grid; grid-template-columns: 82px minmax(0, 1fr) auto; gap: 13px; align-items: start; padding: 13px; border: 1px solid #e4d9ca; border-left: 4px solid #e1a254; border-radius: 9px; background: #fffdf7; }
+.attention-row.critical { border-left-color: #ff7357; background: #fff5ef; }
+.attention-row.opportunity { border-left-color: #739a86; background: #f2f8f1; }
+.attention-severity { color: #9a5d45; font: 700 9px "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .06em; }
+.attention-row.critical .attention-severity { color: #c6533d; }
+.attention-row.opportunity .attention-severity { color: #537c68; }
+.attention-content strong { color: #183d46; font-size: 13px; }
+.attention-content p { margin: 6px 0 0; color: #6f807d; font-size: 11px; }
+.attention-stores { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.attention-stores button { border: 0; padding: 0; background: transparent; color: #1b6d69; font: 600 10px "IBM Plex Mono", monospace; text-decoration: underline; cursor: pointer; text-align: left; }
+.attention-value { color: #315f68; font: 600 11px "IBM Plex Mono", monospace; white-space: nowrap; }
+.attention-empty { padding: 18px; border: 1px dashed #c9d4c9; border-radius: 9px; color: #6d807e; font-size: 12px; }
+@media (max-width: 620px) { .attention-row { grid-template-columns: 1fr auto; } .attention-severity { grid-column: 1 / -1; } .attention-value { grid-column: 2; grid-row: 2; } }

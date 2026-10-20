@@ -20,3 +20,4 @@
 - Farmácias App reativada na navegação com acesso restrito à equipe autorizada; arquivos, funções, migração, tabelas, políticas e dados preservados.
 - Dashboard Farmácias App agora consolida até 3 meses, recalcula percentuais sobre as somas, destaca os meses selecionados, consolida produtos por EAN e exibe cobertura, alertas e pendência de CMV.
 - Persistência de novos registros continua pendente de aprovação explícita do SQL; a tela não altera banco, tabelas, políticas ou dados existentes.
+- Gráficos de promoções e CAC/ticket agora exibem nomes das lojas com código completo no tooltip; Visão consolidada recebeu Pontos de atenção dinâmicos por período.

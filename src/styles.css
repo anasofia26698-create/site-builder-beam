@@ -500,3 +500,17 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .dre-attention-highlight { animation: dre-attention-flash 2s ease-out; }
 @keyframes dre-attention-flash { 0%, 100% { box-shadow: none; } 15%, 55% { box-shadow: 0 0 0 4px rgba(255,115,87,.28); background-color: #fff2dc; } }
 @media (max-width: 620px) { .dre-attention-row { grid-template-columns: 1fr 18px; } .dre-attention-severity { grid-column: 1 / -1; } }
+/* Farmácias App — identidade Farmasull, sem bloquear a visualização por login. */
+.fapp-app { color: #40217c; background: #fff; }
+.fapp-heading, .fapp-panel, .fapp-section, .fapp-metric, .fapp-toolbar { background: #fff; }
+.fapp-tabs button.active { background: #db3339; border-color: #db3339; color: #fff; }
+.fapp-tabs button { color: #40217c; background: #fff; border-color: #d9d4e2; }
+.fapp-hero { background: #08a0ae; color: #fff; }
+.fapp-hero .page-title, .fapp-hero p { color: #fff; }
+.fapp-metric strong, .fapp-panel-heading h2, .fapp-section h2, .fapp-dre strong { color: #db3339; }
+.fapp-panel, .fapp-section, .fapp-metric { border-color: #e3e0e8; box-shadow: 0 7px 18px rgba(64,33,124,.05); }
+.fapp-empty, .fapp-pending, .fapp-notice { background: #fff; border-color: #c7bfd8; color: #40217c; }
+.fapp-month-table button { background: #fff; border-color: #e3e0e8; }
+.fapp-month-table button.selected { background: #fff0f0; border-color: #db3339; box-shadow: inset 3px 0 #db3339; }
+.fapp-history i { background: #08a0ae; }
+@media (max-width: 760px) { .fapp-grid, .fapp-metric-grid { grid-template-columns: 1fr; } .fapp-panel, .fapp-section { min-width: 0; } }

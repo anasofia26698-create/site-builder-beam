@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1792455141817,
+      "tag": "0000_farmacias_app_team_and_monthly_data",
+      "breakpoints": true
+    }
+  ]
+}

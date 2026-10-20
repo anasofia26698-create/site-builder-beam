@@ -14,6 +14,164 @@ export type Database = {
   }
   public: {
     Tables: {
+      fapp_campaigns: {
+        Row: {
+          id: string
+          payload: Json
+          record_id: string
+        }
+        Insert: {
+          id?: string
+          payload: Json
+          record_id: string
+        }
+        Update: {
+          id?: string
+          payload?: Json
+          record_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fapp_campaigns_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "fapp_monthly_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fapp_monthly_records: {
+        Row: {
+          id: string
+          payload: Json
+          reference_month: string
+          store_id: string
+          updated_at: string
+          updated_by: string
+          workspace_id: string
+        }
+        Insert: {
+          id?: string
+          payload?: Json
+          reference_month: string
+          store_id: string
+          updated_at?: string
+          updated_by: string
+          workspace_id?: string
+        }
+        Update: {
+          id?: string
+          payload?: Json
+          reference_month?: string
+          store_id?: string
+          updated_at?: string
+          updated_by?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fapp_monthly_records_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "store_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fapp_payments: {
+        Row: {
+          id: string
+          payload: Json
+          record_id: string
+        }
+        Insert: {
+          id?: string
+          payload: Json
+          record_id: string
+        }
+        Update: {
+          id?: string
+          payload?: Json
+          record_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fapp_payments_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "fapp_monthly_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fapp_products: {
+        Row: {
+          id: string
+          payload: Json
+          record_id: string
+        }
+        Insert: {
+          id?: string
+          payload: Json
+          record_id: string
+        }
+        Update: {
+          id?: string
+          payload?: Json
+          record_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fapp_products_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "fapp_monthly_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_catalog: {
+        Row: {
+          city: string
+          id: string
+          name: string
+        }
+        Insert: {
+          city?: string
+          id: string
+          name: string
+        }
+        Update: {
+          city?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      store_identity_migration_backup: {
+        Row: {
+          created_at: string
+          id: string
+          original_id: string
+          row_data: Json
+          source_table: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          original_id: string
+          row_data: Json
+          source_table: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          original_id?: string
+          row_data?: Json
+          source_table?: string
+        }
+        Relationships: []
+      }
       store_records: {
         Row: {
           adInvestment: number
@@ -215,15 +373,90 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      workspace_invitations: {
+        Row: {
+          accepted_by: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: []
+      }
+      workspace_members: {
+        Row: {
+          created_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+          workspace_id?: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      accept_fapp_invitation: { Args: never; Returns: boolean }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_fapp_member: { Args: never; Returns: boolean }
+      save_fapp_record: {
+        Args: { p_confirmed?: boolean; p_payload: Json }
+        Returns: string
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -350,6 +583,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "member"],
+    },
   },
 } as const

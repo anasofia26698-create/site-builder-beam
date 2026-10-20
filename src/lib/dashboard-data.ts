@@ -491,7 +491,7 @@ export const buildHistoryForStore = (storeId: string, allSnapshots: StoreSnapsho
 export const buildConsolidatedHistory = (stores: StoreMetrics[], allSnapshots: StoreSnapshotRecord[]) => {
   const identities = new Map(stores.map(store => [store.id, store]));
   allSnapshots.forEach(snapshot => {
-    if (!identities.has(snapshot.storeId)) identities.set(snapshot.storeId, calculateMetrics(mapPersistedStore({ ...snapshot, id: snapshot.storeId } as PersistedStoreRecord)));
+    if (!identities.has(snapshot.storeId)) identities.set(snapshot.storeId, calculateMetrics(mapPersistedStore({ ...snapshot, id: snapshot.storeId } as unknown as PersistedStoreRecord)));
   });
   const storeHistories = [...identities.values()].map((store) => buildHistoryForStore(store.id, allSnapshots, store));
   return annualPeriods.map(({ label }, periodIndex) => {

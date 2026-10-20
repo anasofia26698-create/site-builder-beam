@@ -5,13 +5,13 @@ import DashboardHome from "@/components/DashboardHome";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Resultado — iFood e Farmácias App" },
+      { title: "Resultado — iFood" },
       {
         name: "description",
         content:
-          "Resultados mensais das lojas no iFood e Farmácias App: margens, custos, campanhas e comparativo por competência.",
+          "Resultados mensais das lojas no iFood: margens, custos, campanhas e comparativo por competência.",
       },
-      { property: "og:title", content: "Resultado — iFood e Farmácias App" },
+      { property: "og:title", content: "Resultado — iFood" },
       {
         property: "og:description",
         content:
